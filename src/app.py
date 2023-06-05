@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Element, Section
+from models import db, User, People, Planet
 
 # from models import Person
 
@@ -49,37 +49,16 @@ def get_users():
     return jsonify([user.serialize() for user in users]), 200
 
 
-@app.route("/user", methods=["POST"])
-def add_user():
-    name = request.json["name"]
-    email = request.json["email"]
-    password = request.json["password"]
-    new_user = User(name, email, password)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify(new_user.serialize()), 201
-
-
 @app.route("/people", methods=["GET"])
 def get_peoples():
-    peoples = Element.query.get()
+    peoples = People.query.all()
     return jsonify([people.serialize() for people in peoples]), 200
 
 
 @app.route("/planet", methods=["GET"])
 def get_planets():
-    planets = Element.query.get()
+    planets = Planet.query.all()
     return jsonify([planet.serialize() for planet in planets]), 200
-
-
-@app.route("/section", methods=["POST"])
-def add_section():
-    new_section = Section(
-        name=request.json["name"],
-    )
-    db.session.add(new_section)
-    db.session.commit()
-    return jsonify(new_section.serialize()), 201
 
 
 # this only runs if `$ python src/app.py` is executed

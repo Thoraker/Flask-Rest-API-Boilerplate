@@ -12,7 +12,7 @@ Create flask API's in minutes, [📹 watch the video tutorial](https://youtu.be/
 
 ## 1) Installation
 
-This template installs itself in a few seconds if you open it for free with Codespaces (recommended) or Gitpod. 
+This template installs itself in a few seconds if you open it for free with Codespaces (recommended) or Gitpod.
 Skip this installation steps and jump to step 2 if you decide to use any of those services.
 
 > Important: The boiplerplate is made for python 3.10 but you can easily change the `python_version` on the Pipfile.
@@ -50,7 +50,6 @@ $ pipenv run upgrade  # (to update your databse with the migrations)
 ## Publish/Deploy your website!
 
 This boilerplate it's 100% read to deploy with Render.com and Herkou in a matter of minutes. Please read the [official documentation about it](https://start.4geeksacademy.com/deploy).
-
 
 ### Contributors
 

@@ -1,72 +1,95 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import declarative_base
 
 db = SQLAlchemy()
-Base = declarative_base()
+Base = db.declarative_base()
 
 
-favorites = db.Table(
-    "favorites",
-    db.Column("user_id", db.ForeignKey("users.id"), primary_key=True),
-    db.Column("element_id", db.ForeignKey("elements.id"), unique=True, nullable=True),
+favorite_people = db.Table(
+    "favorite_people",
+    db.Column("user_id", db.ForeignKey("users.id")),
+    db.Column("people_id", db.ForeignKey("peoples.id")),
+)
+
+
+favorite_planet = db.Table(
+    "favorite_planet",
+    db.Column("user_id", db.ForeignKey("users.id")),
+    db.Column("planet_id", db.ForeignKey("planets.id")),
 )
 
 
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=True)
-    email = db.Column(db.String(120), unique=True, nullable=True)
-    password = db.Column(db.String(80), unique=False, nullable=True)
+    user_name = db.Column(db.String(50), unique=True, nullable=True)
+    password = db.Column(db.String(50), unique=True, nullable=True)
+    mail = db.Column(db.String(80), unique=True, nullable=True)
 
-    elements = db.relationship("Element", secondary="favorites", back_populates="users")
+    favorite_planets = db.relationship(
+        "Planet", secondary=favorite_planet, back_populates="liked"
+    )
+    favorite_peoples = db.relationship(
+        "People", secondary=favorite_people, back_populates="liked"
+    )
 
-    def __repr__(self):
-        return "<User %r>" % self.name
+    def serialize(self):
+        return {
+            "User name": self.user_name,
+            "E-mail": self.mail,
+        }
 
-    def __init__(self, id, name, email, password):
-        self.id = id
-        self.name = name
-        self.email = email
-        self.password = password
+
+class Planet(db.Model):
+    __tablename__ = "planets"
+    id = db.Column(db.Integer(), primary_key=True)
+    diameter = db.Column(db.String(30), nullable=True)
+    rotation_period = db.Column(db.Integer(), nullable=True)
+    orbital_period = db.Column(db.Integer(), nullable=True)
+    gravity = db.Column(db.String(30), nullable=True)
+    population = db.Column(db.Integer(), nullable=True)
+    climate = db.Column(db.String(30), nullable=True)
+    terrain = db.Column(db.String(30), nullable=True)
+    surface_water = db.Column(db.Integer(), nullable=True)
+    created = db.Column(db.String(30), nullable=True)
+    name = db.Column(db.String(50), unique=True, nullable=True)
+    url = db.Column(db.String(50), unique=True, nullable=True)
+
+    liked = db.relationship(
+        "User", secondary=favorite_planet, back_populates="favorite_planets"
+    )
+    natives = db.relationship("People", back_populates="compatriot")
 
     def serialize(self):
         return {
             "id": self.id,
             "name": self.name,
-            "email": self.email,
-            "password": self.password,
+            "url": self.url,
         }
 
 
-class Element(db.Model):
-    __tablename__ = "elements"
+class People(db.Model):
+    __tablename__ = "peoples"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=True)
-    details = db.Column(db.String(250), nullable=True)
-    section_id = db.Column(db.Integer, db.ForeignKey("sections.id"))
+    height = db.Column(db.Float, nullable=True)
+    mass = db.Column(db.Float, nullable=True)
+    hair_color = db.Column(db.String(30), nullable=True)
+    skin_color = db.Column(db.String(30), nullable=True)
+    eye_color = db.Column(db.String(30), nullable=True)
+    birth_year = db.Column(db.String(30), nullable=True)
+    gender = db.Column(db.String(30), nullable=True)
+    created = db.Column(db.String(30), nullable=True)
+    name = db.Column(db.String(50), unique=True, nullable=True)
+    homeworld = db.Column(db.Integer, db.ForeignKey("planets.id"), nullable=True)
+    url = db.Column(db.String(50), unique=True, nullable=True)
 
-    users = db.relationship("User", secondary="favorites", back_populates="elements")
-
-    def __repr__(self):
-        return "<Element %r>" % self.name
+    liked = db.relationship(
+        "User", secondary=favorite_people, back_populates="favorite_peoples"
+    )
+    compatriot = db.relationship("Planet", back_populates="natives")
 
     def serialize(self):
         return {
             "id": self.id,
             "name": self.name,
-            "details": self.details,
-            "section": self.section_id,
+            "url": self.url,
         }
-
-
-class Section(db.Model):
-    __tablename__ = "sections"
-    id = db.Column(db.Integer, primary_key=True)
-    section_name = db.Column(db.String(50), unique=True, nullable=True)
-
-    def __repr__(self):
-        return "<Section %r>" % self.section_name
-
-    def serialize(self):
-        return {"id": self.id, "name": self.section_name}
