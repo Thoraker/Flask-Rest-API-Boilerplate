@@ -1,7 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-Base = db.declarative_base()
 
 
 favorite_people = db.Table(
@@ -20,9 +19,9 @@ favorite_planet = db.Table(
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer(), primary_key=True)
     user_name = db.Column(db.String(50), unique=True, nullable=True)
-    password = db.Column(db.String(50), unique=True, nullable=True)
+    password = db.Column(db.String(50), unique=False, nullable=True)
     mail = db.Column(db.String(80), unique=True, nullable=True)
 
     favorite_planets = db.relationship(
@@ -36,6 +35,14 @@ class User(db.Model):
         return {
             "User name": self.user_name,
             "E-mail": self.mail,
+        }
+
+    def serialize1(self):
+        return {
+            "User name": self.user_name,
+            "E-mail": self.mail,
+            "favorite_planets": self.favorite_planets,
+            "favorite_peoples": self.favorite_peoples,
         }
 
 
@@ -66,6 +73,21 @@ class Planet(db.Model):
             "url": self.url,
         }
 
+    def serialize2(self):
+        return {
+            "diameter": self.diameter,
+            "rotation_period": self.rotation_period,
+            "orbital_period": self.orbital_period,
+            "gravity": self.gravity,
+            "population": self.population,
+            "climate": self.climate,
+            "terrain": self.terrain,
+            "surface_water": self.surface_water,
+            "created": self.created,
+            "name": self.name,
+            "url": self.url,
+        }
+
 
 class People(db.Model):
     __tablename__ = "peoples"
@@ -79,7 +101,7 @@ class People(db.Model):
     gender = db.Column(db.String(30), nullable=True)
     created = db.Column(db.String(30), nullable=True)
     name = db.Column(db.String(50), unique=True, nullable=True)
-    homeworld = db.Column(db.Integer, db.ForeignKey("planets.id"), nullable=True)
+    homeworld = db.Column(db.ForeignKey("planets.id"), nullable=True)
     url = db.Column(db.String(50), unique=True, nullable=True)
 
     liked = db.relationship(
@@ -91,5 +113,20 @@ class People(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "url": self.url,
+        }
+
+    def serialize2(self):
+        return {
+            "height": self.height,
+            "mass": self.mass,
+            "hair_color": self.hair_color,
+            "skin_color": self.skin_color,
+            "eye_color": self.eye_color,
+            "birth_year": self.birth_year,
+            "gender": self.gender,
+            "created": self.created,
+            "name": self.name,
+            "homeworld": self.homeworld,
             "url": self.url,
         }
