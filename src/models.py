@@ -6,14 +6,14 @@ db = SQLAlchemy()
 favorite_people = db.Table(
     "favorite_people",
     db.Column("user_id", db.ForeignKey("users.id")),
-    db.Column("people_id", db.ForeignKey("peoples.id")),
+    db.Column("id", db.ForeignKey("peoples.id")),
 )
 
 
 favorite_planet = db.Table(
     "favorite_planet",
     db.Column("user_id", db.ForeignKey("users.id")),
-    db.Column("planet_id", db.ForeignKey("planets.id")),
+    db.Column("id", db.ForeignKey("planets.id")),
 )
 
 
@@ -24,11 +24,11 @@ class User(db.Model):
     password = db.Column(db.String(50), unique=False, nullable=True)
     mail = db.Column(db.String(80), unique=True, nullable=True)
 
-    favorite_planets = db.relationship(
-        "Planet", secondary=favorite_planet, back_populates="liked"
-    )
     favorite_peoples = db.relationship(
         "People", secondary=favorite_people, back_populates="liked"
+    )
+    favorite_planets = db.relationship(
+        "Planet", secondary=favorite_planet, back_populates="liked"
     )
 
     def serialize(self):
@@ -36,13 +36,24 @@ class User(db.Model):
             "User name": self.user_name,
             "E-mail": self.mail,
         }
-
+    
     def serialize1(self):
         return {
             "User name": self.user_name,
             "E-mail": self.mail,
-            "favorite_planets": self.favorite_planets,
-            "favorite_peoples": self.favorite_peoples,
+            "password": self.password,
+        }
+
+    def serialize2(self):
+        return {
+            "User name": self.user_name,
+            "E-mail": self.mail,
+            "favorite_planets": [
+                planet.serialize1() for planet in self.favorite_planets
+            ],
+            "favorite_peoples": [
+                people.serialize1() for people in self.favorite_peoples
+            ],
         }
 
 
@@ -57,9 +68,7 @@ class Planet(db.Model):
     climate = db.Column(db.String(30), nullable=True)
     terrain = db.Column(db.String(30), nullable=True)
     surface_water = db.Column(db.Integer(), nullable=True)
-    created = db.Column(db.String(30), nullable=True)
     name = db.Column(db.String(50), unique=True, nullable=True)
-    url = db.Column(db.String(50), unique=True, nullable=True)
 
     liked = db.relationship(
         "User", secondary=favorite_planet, back_populates="favorite_planets"
@@ -70,7 +79,13 @@ class Planet(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "url": self.url,
+        }
+
+    def serialize1(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "url": "http://localhost:3000/planet/" + str(self.id),
         }
 
     def serialize2(self):
@@ -83,26 +98,24 @@ class Planet(db.Model):
             "climate": self.climate,
             "terrain": self.terrain,
             "surface_water": self.surface_water,
-            "created": self.created,
             "name": self.name,
-            "url": self.url,
+            "url": "http://localhost:3000/planet/" + str(self.id),
+            "natives": [people.serialize() for people in self.natives],
         }
 
 
 class People(db.Model):
     __tablename__ = "peoples"
-    id = db.Column(db.Integer, primary_key=True)
-    height = db.Column(db.Float, nullable=True)
-    mass = db.Column(db.Float, nullable=True)
+    id = db.Column(db.Integer(), primary_key=True)
+    height = db.Column(db.Float(), nullable=True)
+    mass = db.Column(db.Float(), nullable=True)
     hair_color = db.Column(db.String(30), nullable=True)
     skin_color = db.Column(db.String(30), nullable=True)
     eye_color = db.Column(db.String(30), nullable=True)
     birth_year = db.Column(db.String(30), nullable=True)
     gender = db.Column(db.String(30), nullable=True)
-    created = db.Column(db.String(30), nullable=True)
     name = db.Column(db.String(50), unique=True, nullable=True)
-    homeworld = db.Column(db.ForeignKey("planets.id"), nullable=True)
-    url = db.Column(db.String(50), unique=True, nullable=True)
+    homeworld = db.Column(db.Integer(), db.ForeignKey("planets.id"), nullable=True)
 
     liked = db.relationship(
         "User", secondary=favorite_people, back_populates="favorite_peoples"
@@ -113,7 +126,13 @@ class People(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "url": self.url,
+        }
+
+    def serialize1(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "url": "http://localhost:3000/people/" + str(self.id),
         }
 
     def serialize2(self):
@@ -125,8 +144,7 @@ class People(db.Model):
             "eye_color": self.eye_color,
             "birth_year": self.birth_year,
             "gender": self.gender,
-            "created": self.created,
             "name": self.name,
             "homeworld": self.homeworld,
-            "url": self.url,
+            "url": "http://localhost:3000/people/" + str(self.id),
         }
